@@ -21,6 +21,7 @@ const config =
   {
       preload,
       create,
+      update
      // update: update
 
   }
@@ -52,9 +53,24 @@ function create()
 
      this.add.image(0, 0,'sky').setOrigin(0,0);
     
-     bird = this.add.sprite(config.width / 10, config.height / 2, 'bird').setOrigin(0);
+     bird = this.physics.add.sprite(config.width / 10, config.height / 2, 'bird').setOrigin(0);
+
+     bird.body.gravity.y = 200;
 
      debugger
+}
+
+//to = 0 px/s
+//t1 = 200 px/s
+//t2 = 400 px/s
+//t3 = 600 px/s
+
+//60fps
+//60fps *16ms = 1000 ms
+
+function update(time,delta)
+{
+
 }
 
 //...
