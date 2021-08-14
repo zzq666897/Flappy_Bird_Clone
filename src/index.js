@@ -51,8 +51,13 @@ function preload()
 const VELOCITY = 200;
 
 let bird = null;
-let upperPipe = null;
-let lowerPipe = null;
+let pipes = null;
+
+
+
+let pipeHorizontalDistance = 0;
+
+const PIPES_RENDER = 4;
 
 const initialBirdPosition = {x: config.width / 10, y: config.height / 2};
 
@@ -60,27 +65,31 @@ let flapVelocity = 300;
 
 const pipeDistanceRange = [150, 250];
 
-let pipeVerticalDistance = Phaser.Math.Between(pipeDistanceRange[0],pipeDistanceRange[1]);
 //let pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
 
 function create()
 {
-     //x - 400
-
-     //y - 300
-
-     //key of the image
-
-     //this.add.image(config.width / 2, config.height / 2,'sky');
 
      this.add.image(0, 0,'sky').setOrigin(0,0);
-    
+     
+
      // place sprite on certain position ans set the origin of it.
      bird = this.physics.add.sprite(initialBirdPosition.x, initialBirdPosition.y, 'bird').setOrigin(0);
      bird.body.gravity.y = 400;
 
-    // upperPipe = this.add.sprite(400,200,'pipe').setOrigin(0,1);
-    // lowerPipe = this.add.sprite(400,upperPipe.y + pipeVerticalDistance,'pipe').setOrigin(0,0);
+     pipes = this.physics.add.group();
+
+
+     for(let i = 0; i < PIPES_RENDER; i ++)
+    
+     {
+       const upperPipe = this.physics.add.sprite(0,0,'pipe').setOrigin(0,1);
+       const lowerPipe = this.physics.add.sprite(0,0,'pipe').setOrigin(0,0);
+      
+      PlacePipes(upperPipe,lowerPipe);
+   
+     }
+
 
     // bird.body.gravity.y = 200;
 
@@ -91,7 +100,7 @@ function create()
     this.input.keyboard.on('keydown-SPACE', flap);
 
 
-     debugger
+     //debugger
 }
 
 //to = 0 px/s
@@ -159,6 +168,33 @@ function restartPlayerPosition()
   bird.x = initialBirdPosition.x;
   bird.y = initialBirdPosition.y;
   bird.body.velocity.y = 0;
+
+}
+
+function PlacePipes(upPipe,lowPipe)
+{
+  
+  for(let i = 0; i < PIPES_RENDER; i ++)
+    
+  {
+    
+   pipeHorizontalDistance += 100;
+         
+   let pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
+   let pipeVerticalPosition = Phaser.Math.Between(0 + 20, config.height -20 - pipeVerticalDistance);
+
+   upPipe.x = pipeHorizontalDistance;
+   upPipe.y = pipeVerticalPosition;
+   
+   lowPipe.x = upPipe.x
+   lowPipe.y = upPipe.y + pipeVerticalDistance;
+   
+   upPipe.body.velocity.x = -200;
+
+   lowPipe.body.velocity.x = -200;
+
+
+  }
 
 }
 
