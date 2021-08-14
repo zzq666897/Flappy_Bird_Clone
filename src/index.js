@@ -64,6 +64,7 @@ const initialBirdPosition = {x: config.width / 10, y: config.height / 2};
 let flapVelocity = 300;
 
 const pipeDistanceRange = [150, 250];
+const pipeHorizontalDistanceRange = [100,150];
 
 //let pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
 
@@ -83,12 +84,14 @@ function create()
      for(let i = 0; i < PIPES_RENDER; i ++)
     
      {
-       const upperPipe = this.physics.add.sprite(0,0,'pipe').setOrigin(0,1);
-       const lowerPipe = this.physics.add.sprite(0,0,'pipe').setOrigin(0,0);
+       const upperPipe = pipes.create (0,0,'pipe').setOrigin(0,1);
+       const lowerPipe = pipes.create (0,0,'pipe').setOrigin(0,0);
       
       PlacePipes(upperPipe,lowerPipe);
    
      }
+
+     pipes.setVelocityX(-200);
 
 
     // bird.body.gravity.y = 200;
@@ -158,6 +161,8 @@ function limitSpriteMovement()
     //alert('You Lose!');
 
     restartPlayerPosition();
+
+    recyclePipes();
   }
 
    
@@ -178,23 +183,51 @@ function PlacePipes(upPipe,lowPipe)
     
   {
     
-   pipeHorizontalDistance += 100;
-         
-   let pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
-   let pipeVerticalPosition = Phaser.Math.Between(0 + 20, config.height -20 - pipeVerticalDistance);
+   //pipeHorizontalDistance += 100;
 
-   upPipe.x = pipeHorizontalDistance;
+   const rightMostX = GetRightMostPipe();
+         
+   const pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
+   const pipeVerticalPosition = Phaser.Math.Between(0 + 20, config.height -20 - pipeVerticalDistance);
+   const pipeHorizontalDistance = Phaser.Math.Between(...pipeHorizontalDistanceRange);
+
+   upPipe.x = rightMostX + pipeHorizontalDistance;
    upPipe.y = pipeVerticalPosition;
    
    lowPipe.x = upPipe.x
    lowPipe.y = upPipe.y + pipeVerticalDistance;
    
-   upPipe.body.velocity.x = -200;
+  //  upPipe.body.velocity.x = -200;
 
-   lowPipe.body.velocity.x = -200;
+  //  lowPipe.body.velocity.x = -200;
 
 
   }
+
+}
+
+function recyclePipes()
+{
+    pipes.getChildren().forEach(pipe => 
+      {
+        if(pipe.getBounds().right <= 0)
+        {
+            // recycle pipe
+        }
+    
+      })
+}
+
+function GetRightMostPipe()
+{
+  let rightMostX = 0;
+
+  pipes.getChildren().forEach(function(pipe)
+  {
+    rightMostX = Math.max(pipe.x, rightMostX);
+  })
+ 
+   return rightMostX;
 
 }
 
