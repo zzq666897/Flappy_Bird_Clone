@@ -18,7 +18,7 @@ const config =
     arcade:
     {
        debug:true,        // add debug ray to the object with gravity
-       gravity: {y:400}  // gravity according y direction
+     //  gravity: {y:400}  // gravity according y direction to global all objects
     }
 
   },
@@ -43,6 +43,7 @@ function preload()
     
     this.load.image('sky','assets/sky.png');
     this.load.image('bird', 'assets/bird.png');
+    this.load.image('pipe', 'assets/pipe.png');
 }
 
 
@@ -50,9 +51,17 @@ function preload()
 const VELOCITY = 200;
 
 let bird = null;
-let totalDelta = null;
+let upperPipe = null;
+let lowerPipe = null;
+
+const initialBirdPosition = {x: config.width / 10, y: config.height / 2};
+
 let flapVelocity = 300;
 
+const pipeDistanceRange = [150, 250];
+
+let pipeVerticalDistance = Phaser.Math.Between(pipeDistanceRange[0],pipeDistanceRange[1]);
+//let pipeVerticalDistance = Phaser.Math.Between(...pipeDistanceRange);
 
 function create()
 {
@@ -67,7 +76,11 @@ function create()
      this.add.image(0, 0,'sky').setOrigin(0,0);
     
      // place sprite on certain position ans set the origin of it.
-     bird = this.physics.add.sprite(config.width / 10, config.height / 2, 'bird').setOrigin(0);
+     bird = this.physics.add.sprite(initialBirdPosition.x, initialBirdPosition.y, 'bird').setOrigin(0);
+     bird.body.gravity.y = 400;
+
+    // upperPipe = this.add.sprite(400,200,'pipe').setOrigin(0,1);
+    // lowerPipe = this.add.sprite(400,upperPipe.y + pipeVerticalDistance,'pipe').setOrigin(0,0);
 
     // bird.body.gravity.y = 200;
 
@@ -90,8 +103,7 @@ function create()
 //60fps *16ms = 1000 ms
 
 
-// if bird position x is sam eor larger than width of canvas go back to the left.
-// if bird position x is smaller or equal to 0 then move back to the right.
+
 
 function update(time,delta)
 {
@@ -106,18 +118,48 @@ function flap()
    bird.body.velocity.y = -flapVelocity;
 }
 
+
+
+
+
+
+
+
+// if bird position x is sam eor larger than width of canvas go back to the left.
+// if bird position x is smaller or equal to 0 then move back to the right.
+
+// if bird y position is small than 0 or greater than height of the canvas
+// aler "you lose!"
+
+
 function limitSpriteMovement()
 {
-  if(bird.x >= config.width - bird.width)
-  {
-     bird.body.velocity.x = -VELOCITY;
-  }
+  // if(bird.x >= config.width - bird.width)
+  // {
+  //    bird.body.velocity.x = -VELOCITY;
+  // }
   
-  else if(bird.x <= 0)
+  // else if(bird.x <= 0)
+  // {
+  //   bird.body.velocity.x = VELOCITY;
+  // }
+
+  if(bird.y > config.height || bird.y < 0)
   {
-    bird.body.velocity.x = VELOCITY;
+    //alert('You Lose!');
+
+    restartPlayerPosition();
   }
+
    
+}
+
+function restartPlayerPosition()
+{
+  bird.x = initialBirdPosition.x;
+  bird.y = initialBirdPosition.y;
+  bird.body.velocity.y = 0;
+
 }
 
 //...
