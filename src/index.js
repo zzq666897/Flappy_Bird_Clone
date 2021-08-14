@@ -12,9 +12,15 @@ const config =
   height: 600,
   physics:
   {
-      
     //Arcade physics plugin, manages physics simulation
-    default:'arcade'
+    default:'arcade',
+   
+    arcade:
+    {
+       debug:true,        // add debug ray to the object with gravity
+       gravity: {y:400}  // gravity according y direction
+    }
+
   },
 
   scene:
@@ -39,7 +45,14 @@ function preload()
     this.load.image('bird', 'assets/bird.png');
 }
 
+
+// Variables
+const VELOCITY = 200;
+
 let bird = null;
+let totalDelta = null;
+let flapVelocity = 300;
+
 
 function create()
 {
@@ -53,9 +66,17 @@ function create()
 
      this.add.image(0, 0,'sky').setOrigin(0,0);
     
+     // place sprite on certain position ans set the origin of it.
      bird = this.physics.add.sprite(config.width / 10, config.height / 2, 'bird').setOrigin(0);
 
-     bird.body.gravity.y = 200;
+    // bird.body.gravity.y = 200;
+
+    // bird.body.velocity.x = VELOCITY;
+
+    this.input.on('pointerdown', flap);
+
+    this.input.keyboard.on('keydown-SPACE', flap);
+
 
      debugger
 }
@@ -68,9 +89,35 @@ function create()
 //60fps
 //60fps *16ms = 1000 ms
 
+
+// if bird position x is sam eor larger than width of canvas go back to the left.
+// if bird position x is smaller or equal to 0 then move back to the right.
+
 function update(time,delta)
 {
+  // totalDelta += delta;
 
+  limitSpriteMovement();
+
+}
+
+function flap()
+{
+   bird.body.velocity.y = -flapVelocity;
+}
+
+function limitSpriteMovement()
+{
+  if(bird.x >= config.width - bird.width)
+  {
+     bird.body.velocity.x = -VELOCITY;
+  }
+  
+  else if(bird.x <= 0)
+  {
+    bird.body.velocity.x = VELOCITY;
+  }
+   
 }
 
 //...
