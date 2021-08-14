@@ -123,6 +123,8 @@ function update(time,delta)
 
   limitSpriteMovement();
 
+  recyclePipes();
+
 }
 
 function flap()
@@ -162,7 +164,7 @@ function limitSpriteMovement()
 
     restartPlayerPosition();
 
-    recyclePipes();
+    
   }
 
    
@@ -208,11 +210,18 @@ function PlacePipes(upPipe,lowPipe)
 
 function recyclePipes()
 {
+    const tempPipes = [];
+
     pipes.getChildren().forEach(pipe => 
       {
         if(pipe.getBounds().right <= 0)
         {
             // recycle pipe
+            tempPipes.push(pipe);
+            if(tempPipes.length == 2)
+            {
+               PlacePipes(...tempPipes);
+            }
         }
     
       })
