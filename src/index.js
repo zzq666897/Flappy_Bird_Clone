@@ -3,14 +3,25 @@ import PlayScene from './scenes/PlayScene';
 
 
 // setup the screen size
+const WIDTH = 800;
+const HEIGHT = 600;
+const BIRD_POSTION = {x: WIDTH * 0.1, y: HEIGHT/2};
+
+const SHARED_CONFIG = 
+{
+  width: WIDTH,
+  height: HEIGHT,
+  startPosition: BIRD_POSTION
+}
 
 const config =
 {
   // WebGL Web Graphics Lib JS api for rendering 2D and 3D graphics
   
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  
+   ...SHARED_CONFIG,
+
   physics:
   {
     //Arcade physics plugin, manages physics simulation
@@ -24,7 +35,7 @@ const config =
 
   },
 
-  scene:[PlayScene]
+  scene:[new PlayScene(SHARED_CONFIG)]
   // {
   //     preload,
   //     create,
