@@ -40,64 +40,90 @@ class PlayScene extends Phaser.Scene
    create()
    {
       
-     this.add.image(0, 0,'sky').setOrigin(0,0);
-     
-
-     // place sprite on certain position ans set the origin of it.
-     this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
-     this.bird.body.gravity.y = 400; // set bird velocity
-
-     this.pipes = this.physics.add.group();
-
-
-     for(let i = 0; i < PIPES_RENDER; i ++)
-    
-     {
-       const upperPipe = this.pipes.create (0,0,'pipe').setOrigin(0,1);
-       const lowerPipe = this.pipes.create (0,0,'pipe').setOrigin(0,0);
-      
-      this.PlacePipes(upperPipe,lowerPipe);
-   
-     }
-
-     this.pipes.setVelocityX(-200);
+     this.createBG();
+     this.createBird();
+     this.createPipes();
+     this.createColliders();
+     this.handleInputs();
 
 
     // bird.body.gravity.y = 200;
 
     // bird.body.velocity.x = VELOCITY;
 
-    this.input.on('pointerdown', this.flap,this);
-
-    this.input.keyboard.on('keydown-SPACE', this.flap,this);
-
-     debugger
+     //debugger
 
    }
 
   
-   
-
-   
-
-
-
-
-
-update(time,delta)
-{
-  if(this.bird.y > this.config.height || this.bird.y < 0)
+   update(time,delta)
   {
-    //alert('You Lose!');
-
-    this.restartPlayerPosition();
-
-    
-  }
+  this.checkGameStatus();
 
   this.recyclePipes();
 
-}
+  }
+
+   createBG()
+   {
+      this.add.image(0, 0,'sky').setOrigin(0,0);
+   }
+
+   createBird()
+   {
+      
+     // place sprite on certain position ans set the origin of it.
+     this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
+     this.bird.body.gravity.y = 400; // set bird velocity
+   }
+
+   createPipes()
+   {
+    this.pipes = this.physics.add.group();
+
+
+    for(let i = 0; i < PIPES_RENDER; i ++)
+   
+    {
+      const upperPipe = this.pipes.create (0,0,'pipe').
+      setImmovable(true). // Make the pipe fixed
+      setOrigin(0,1);
+      const lowerPipe = this.pipes.create (0,0,'pipe').
+      setImmovable(true).
+      setOrigin(0,0);
+     
+     this.PlacePipes(upperPipe,lowerPipe);
+  
+    }
+
+    this.pipes.setVelocityX(-200);
+   }
+
+   createColliders()
+   {
+       this.physics.add.collider(this.bird,this.pipes,this.GameOver,null,this);
+   }
+
+   handleInputs()
+  {
+    this.input.on('pointerdown', this.flap,this);
+
+    this.input.keyboard.on('keydown-SPACE', this.flap,this);
+  }
+
+
+  checkGameStatus()
+  {
+    if(this.bird.getBounds().bottom >= this.config.height || this.bird.y <= 0)
+    {
+      //alert('You Lose!');
+  
+      this.GameOver();
+  
+      
+    }
+  }
+
 
 
 PlacePipes(upPipe,lowPipe)
@@ -162,12 +188,15 @@ GetRightMostPipe()
 
 }
 
-restartPlayerPosition()
+GameOver()
 {
-  this.bird.x = this.config.startPosition.x;
-  this.bird.y = this.config.startPosition.y;
-  this.bird.body.velocity.y = 0;
+  // this.bird.x = this.config.startPosition.x;
+  // this.bird.y = this.config.startPosition.y;
+  // this.bird.body.velocity.y = 0;
 
+  this.physics.pause();
+  this.bird.setTint(0xfc0324);
+  this.bird.setCollideWorldBounds(true);
 }
 
 
