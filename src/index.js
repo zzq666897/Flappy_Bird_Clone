@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import PlayScene from './scenes/PlayScene';
 
 
 // setup the screen size
@@ -23,14 +24,14 @@ const config =
 
   },
 
-  scene:
-  {
-      preload,
-      create,
-      update
-     // update: update
+  scene:[PlayScene]
+  // {
+  //     preload,
+  //     create,
+  //     update
+  //    // update: update
 
-  }
+  // }
 
 }
 
