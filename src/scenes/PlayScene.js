@@ -51,7 +51,7 @@ class PlayScene extends BaseScene {
   }
 
   create() {
-    this.currentDifficulty ='easy';
+    this.currentDifficulty ='easy'; // initialized difficulty
 
     super.create();
     this.createBird();
@@ -61,6 +61,18 @@ class PlayScene extends BaseScene {
     this.createPause();
     this.handleInputs();
     this.ListenToEvents();
+
+    this.anims.create
+    (
+      {
+        key:'fly',
+        frames: this.anims.generateFrameNumbers('bird',{start:1,end:9}),
+        frameRate:9,
+        repeat: -1 //loop aniamtion
+      }
+    )
+    
+    this.bird.play('fly');
   }
 
   update() {
@@ -117,7 +129,10 @@ if(this.PauseEvent)
   }
 
   createBird() {
-    this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
+    this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').
+    setOrigin(0).
+    setScale(3);
+    this.bird.setBodySize(this.bird.width -5,this.bird.height -5);
     this.bird.body.gravity.y = 600;
     this.bird.setCollideWorldBounds(true);
   }
@@ -208,9 +223,24 @@ if(this.PauseEvent)
           this.placePipe(...tempPipes);
           this.increaseScore();
           this.saveBestScore();
+
+          this.increaseDifficulty();
         }
       }
     })
+  }
+
+  increaseDifficulty()
+  {
+    if(this.score === 1)
+    {
+      this.currentDifficulty = 'normal';
+    }
+
+    if(this.score === 3)
+    {
+      this.currentDifficulty = 'hard';
+    }
   }
 
   getRightMostPipe() {
