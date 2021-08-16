@@ -1,237 +1,171 @@
-import Phaser from 'phaser';
 
+import BaseScene from './BaseScene';
 
-//variables
-const PIPES_RENDER = 4;
+const PIPES_TO_RENDER = 4;
 
+class PlayScene extends BaseScene {
 
+  constructor(config) {
+    super('PlayScene', config);
 
-class PlayScene extends Phaser.Scene
-{
-   
-  //properties
-  constructor(config)
-    { 
-        super('PlayScene');
-        
-        this.config = config;
+    this.bird = null;
+    this.pipes = null;
 
-        this.bird = null;
+    this.pipeHorizontalDistance = 0;
+    this.pipeVerticalDistanceRange = [150, 250];
+    this.pipeHorizontalDistanceRange = [500, 550];
+    this.flapVelocity = 300;
 
-        this.pipes = null;
-
-        this.pipeHorizontalDistance = 0;
-        this.pipeDistanceRange = [150, 250];
-        this.pipeHorizontalDistanceRange = [100,150];
-
-        this.flapVelocity = 250;
-    }
-
-   //loading assets such as images, music animations etc.
-   preload()
-   {
-     this.load.image('sky','assets/sky.png');
-     this.load.image('bird', 'assets/bird.png');
-     this.load.image('pipe', 'assets/pipe.png');
-
-
-   }
-
-   create()
-   {
-      
-     this.createBG();
-     this.createBird();
-     this.createPipes();
-     this.createColliders();
-     this.handleInputs();
-
-
-    // bird.body.gravity.y = 200;
-
-    // bird.body.velocity.x = VELOCITY;
-
-     //debugger
-
-   }
-
-  
-   update(time,delta)
-  {
-  this.checkGameStatus();
-
-  this.recyclePipes();
-
+    this.score = 0;
+    this.scoreText = '';
   }
 
-   createBG()
-   {
-      this.add.image(0, 0,'sky').setOrigin(0,0);
-   }
+  create() {
+    super.create();
+    this.createBird();
+    this.createPipes();
+    this.createColliders();
+    this.createScore();
+    this.createPause();
+    this.handleInputs();
+  }
 
-   createBird()
-   {
-      
-     // place sprite on certain position ans set the origin of it.
-     this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
-     this.bird.body.gravity.y = 400; // set bird velocity
-   }
+  update() {
+    this.checkGameStatus();
+    this.recyclePipes();
+  }
 
-   createPipes()
-   {
+  createBG() {
+    this.add.image(0, 0, 'sky').setOrigin(0);
+  }
+
+  createBird() {
+    this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
+    this.bird.body.gravity.y = 600;
+    this.bird.setCollideWorldBounds(true);
+  }
+
+  createPipes() {
     this.pipes = this.physics.add.group();
 
+    for (let i = 0; i < PIPES_TO_RENDER; i++) {
+      const upperPipe = this.pipes.create(0, 0, 'pipe')
+        .setImmovable(true)
+        .setOrigin(0, 1);
+      const lowerPipe = this.pipes.create(0, 0, 'pipe')
+        .setImmovable(true)
+        .setOrigin(0, 0);
 
-    for(let i = 0; i < PIPES_RENDER; i ++)
-   
-    {
-      const upperPipe = this.pipes.create (0,0,'pipe').
-      setImmovable(true). // Make the pipe fixed
-      setOrigin(0,1);
-      const lowerPipe = this.pipes.create (0,0,'pipe').
-      setImmovable(true).
-      setOrigin(0,0);
-     
-     this.PlacePipes(upperPipe,lowerPipe);
-  
+      this.placePipe(upperPipe, lowerPipe)
     }
 
     this.pipes.setVelocityX(-200);
-   }
-
-   createColliders()
-   {
-       this.physics.add.collider(this.bird,this.pipes,this.GameOver,null,this);
-   }
-
-   handleInputs()
-  {
-    this.input.on('pointerdown', this.flap,this);
-
-    this.input.keyboard.on('keydown-SPACE', this.flap,this);
   }
 
+  createColliders() {
+    this.physics.add.collider(this.bird, this.pipes, this.gameOver, null, this);
+  }
 
-  checkGameStatus()
-  {
-    if(this.bird.getBounds().bottom >= this.config.height || this.bird.y <= 0)
-    {
-      //alert('You Lose!');
-  
-      this.GameOver();
-  
-      
+  createScore() {
+    this.score = 0;
+    const bestScore = localStorage.getItem('bestScore');
+    this.scoreText = this.add.text(16, 16, `Score: ${0}`, { fontSize: '32px', fill: '#000'});
+    this.add.text(16, 52, `Best score: ${bestScore || 0}`, { fontSize: '18px', fill: '#000'});
+  }
+
+  createPause() {
+    const pauseButton = this.add.image(this.config.width - 10, this.config.height -10, 'pause')
+      .setInteractive()
+      .setScale(3)
+      .setOrigin(1);
+
+    pauseButton.on('pointerdown', () => {
+      this.physics.pause();
+      this.scene.pause();
+      this.scene.launch('PauseScene');
+    })
+  }
+
+  handleInputs() {
+    this.input.on('pointerdown', this.flap, this);
+    this.input.keyboard.on('keydown_SPACE', this.flap, this);
+  }
+
+  checkGameStatus() {
+    if (this.bird.getBounds().bottom >= this.config.height || this.bird.y <= 0) {
+      this.gameOver();
     }
   }
 
+  placePipe(uPipe, lPipe) {
+    const rightMostX = this.getRightMostPipe();
+    const pipeVerticalDistance = Phaser.Math.Between(...this.pipeVerticalDistanceRange);
+    const pipeVerticalPosition = Phaser.Math.Between(0 + 20, this.config.height - 20 - pipeVerticalDistance);
+    const pipeHorizontalDistance = Phaser.Math.Between(...this.pipeHorizontalDistanceRange);
 
+    uPipe.x = rightMostX + pipeHorizontalDistance;
+    uPipe.y = pipeVerticalPosition;
 
-PlacePipes(upPipe,lowPipe)
-{
-  
-  for(let i = 0; i < PIPES_RENDER; i ++)
-    
-  {
-    
-   //pipeHorizontalDistance += 100;
-
-   const rightMostX = this.GetRightMostPipe();
-         
-   const pipeVerticalDistance = Phaser.Math.Between(...this.pipeDistanceRange);
-   const pipeVerticalPosition = Phaser.Math.Between(0 + 20, this.config.height -20 - pipeVerticalDistance);
-   const pipeHorizontalDistance = Phaser.Math.Between(...this.pipeHorizontalDistanceRange);
-
-   upPipe.x = rightMostX + pipeHorizontalDistance;
-   upPipe.y = pipeVerticalPosition;
-   
-   lowPipe.x = upPipe.x
-   lowPipe.y = upPipe.y + pipeVerticalDistance;
-   
-  //  upPipe.body.velocity.x = -200;
-
-  //  lowPipe.body.velocity.x = -200;
-
-
+    lPipe.x = uPipe.x;
+    lPipe.y = uPipe.y + pipeVerticalDistance
   }
 
-}
-
-recyclePipes()
-{
+  recyclePipes() {
     const tempPipes = [];
-
-    this.pipes.getChildren().forEach(pipe => 
-      {
-        if(pipe.getBounds().right <= 0)
-        {
-            // recycle pipe
-            tempPipes.push(pipe);
-            if(tempPipes.length == 2)
-            {
-               this.PlacePipes(...tempPipes);
-            }
+    this.pipes.getChildren().forEach(pipe => {
+      if (pipe.getBounds().right <= 0) {
+        tempPipes.push(pipe);
+        if (tempPipes.length === 2) {
+          this.placePipe(...tempPipes);
+          this.increaseScore();
+          this.saveBestScore();
         }
-    
-      })
-}
+      }
+    })
+  }
 
-GetRightMostPipe()
-{
-  let rightMostX = 0;
+  getRightMostPipe() {
+    let rightMostX = 0;
 
-  this.pipes.getChildren().forEach(function(pipe)
-  {
-    rightMostX = Math.max(pipe.x, rightMostX);
-  })
- 
-   return rightMostX;
+    this.pipes.getChildren().forEach(function(pipe) {
+      rightMostX = Math.max(pipe.x, rightMostX);
+    })
 
-}
+    return rightMostX;
+  }
 
-GameOver()
-{
-  // this.bird.x = this.config.startPosition.x;
-  // this.bird.y = this.config.startPosition.y;
-  // this.bird.body.velocity.y = 0;
+  saveBestScore() {
+    const bestScoreText = localStorage.getItem('bestScore');
+    const bestScore = bestScoreText && parseInt(bestScoreText, 10);
 
-  this.physics.pause();
-  this.bird.setTint(0xfc0324);
-  this.bird.setCollideWorldBounds(true);
-}
+    if (!bestScore || this.score > bestScore) {
+      localStorage.setItem('bestScore', this.score);
+    }
+  }
 
+  gameOver() {
+    this.physics.pause();
+    this.bird.setTint(0xEE4824);
 
-flap()
-{
-   this.bird.body.velocity.y = -this.flapVelocity;
-}
+    this.saveBestScore();
 
+    this.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        this.scene.restart();
+      },
+      loop: false
+    })
+  }
 
+  flap() {
+    this.bird.body.velocity.y = -this.flapVelocity;
+  }
 
+  increaseScore() {
+    this.score++;
+    this.scoreText.setText(`Score: ${this.score}`)
+  }
 }
 
 export default PlayScene;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
