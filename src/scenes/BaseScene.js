@@ -10,6 +10,8 @@ class BaseScene extends Phaser.Scene {
     this.fontSize = 34;
     this.lineHeight = 42;
     this.fontOptions = {fontSize: `${this.fontSize}px`, fill: '#fff'};
+
+ 
   }
 
   create() {
